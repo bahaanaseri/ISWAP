@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12141A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="iSwap">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>iSwap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: phone-first one-screen app with three views (home, editor, result). Dark, turquoise accent, as approved in the screen designs. */
+:root{
+  --bg:#12141A; --panel:#1C1F27; --field:#252933; --ink:#ECEEF3; --ink2:#C9CEDA; --muted:#9AA1B2; --line:#2E323D;
+  --stage:#0B0C10; --accent:#1FC7B6; --accent-ink:#04211E; --soft:#0E3532; --dash:#3A3F4C;
+  --font:"IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;overflow:hidden}
+*{box-sizing:border-box}
+button,a,label.btn{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,label.btn:focus-within,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.view{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:14px;text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.big{min-height:54px;border-radius:16px;font-size:16px}
+.ibtn{width:44px;height:44px;border-radius:12px;border:0;background:var(--panel);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.ibtn svg{width:20px;height:20px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.lbl{font-size:13px;color:var(--muted)}
+.tip{font-size:13px;color:var(--ink2);line-height:1.6;margin:0}
+
+/* home */
+#home{gap:20px;overflow-y:auto}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand b{font-size:32px;font-weight:700;letter-spacing:-.02em;direction:ltr;text-align:right}
+.brand b i{font-style:normal;color:var(--accent)}
+.brand span{font-size:14px;color:var(--muted)}
+.pick{border:2px solid var(--accent);background:var(--soft)}
+.thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.thumb{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+.thumb canvas{width:100%;height:100%;display:block;object-fit:cover}
+.thumb .tag{position:absolute;top:6px;right:6px;background:var(--bg);font-size:11.5px;padding:2px 8px;border-radius:999px}
+.thumb .x{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;border:0;background:var(--bg);font-size:15px;line-height:1}
+.thumb.add{border:1.5px dashed var(--dash);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:8px}
+.steps{display:flex;flex-direction:column;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.step{display:flex;gap:12px;align-items:center;color:var(--ink2)}
+.step b{width:28px;height:28px;border-radius:50%;background:var(--soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto}
+.sample-note{font-size:12.5px;color:var(--muted)}
+.sample-note button{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0}
+
+/* editor */
+#editor{padding-inline:0;padding-bottom:0;gap:0}
+.top{display:flex;align-items:center;gap:8px;padding:0 14px 8px}
+.top .title{flex:1 1 auto;font-size:15px;font-weight:600;min-width:0}
+.ptabs{display:flex;gap:8px;padding:0 14px 8px;overflow-x:auto}
+.ptab{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:12px;border:1px solid var(--line);background:var(--panel);flex:0 0 auto}
+.ptabw{position:relative;flex:0 0 auto;padding-top:6px;padding-left:6px}
+.ptabx{position:absolute;top:0;left:0;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+.ptab.add{border:1.5px dashed var(--dash);background:transparent;color:var(--muted);padding:0 12px;min-height:44px;margin-top:6px;font-size:13px}
+.ptab.on{border:2px solid var(--accent);background:var(--soft)}
+.ptab canvas{width:36px;height:36px;border-radius:8px;display:block}
+.ptab span{font-size:13px}
+.stage{position:relative;flex:1 1 auto;min-height:200px;background:var(--stage);overflow:hidden;touch-action:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hint{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:center;pointer-events:none}
+.hint span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;text-align:center}
+.zoom{position:absolute;bottom:24px;left:10px;display:flex;gap:6px}
+.zoom button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:18px}
+.toast{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:13px;max-width:90%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:3}
+.toast.show{opacity:1}
+.panel{background:var(--panel);border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:2;display:flex;flex-direction:column;max-height:44%;padding-bottom:env(safe-area-inset-bottom,0px)}
+.grip{border:0;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 0 0;color:var(--muted);font-size:12px;width:100%}
+.grip span{width:36px;height:4px;border-radius:2px;background:var(--dash)}
+.grip em{font-style:normal}
+.panel.min .seg,.panel.min .pane{display:none!important}
+.panel.min .grip{padding:8px 0 10px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:8px;border-bottom:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:10px;padding:10px 0;color:var(--muted);font-size:14px}
+.seg button.on{background:var(--soft);color:var(--ink);font-weight:600}
+.pane{padding:12px 14px 16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0}
+.shape{min-height:64px;border-radius:12px;border:1px solid var(--line);background:var(--field);font-size:12.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px}
+.shape svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.shape.on{border:2px solid var(--accent);color:var(--accent)}
+.gesture{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink2)}
+.gesture svg{width:28px;height:28px;flex:0 0 auto}
+.slider{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--ink2)}
+.slider .h{display:flex;justify-content:space-between}
+.slider output{color:var(--muted);font-variant-numeric:tabular-nums}
+.slider input{width:100%;accent-color:var(--accent)}
+.slider.strong{font-size:14px;color:var(--ink);font-weight:600}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;min-height:32px}
+.check input{accent-color:var(--accent);width:20px;height:20px}
+.clip{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:12px;padding:8px}
+.clip canvas{width:52px;height:52px;border-radius:8px;flex:0 0 auto;background:repeating-conic-gradient(var(--line) 0 25%,transparent 0 50%) 0 0/12px 12px}
+
+/* result */
+#result{gap:16px}
+.cmp{position:relative;flex:1 1 auto;min-height:200px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--stage);touch-action:none}
+.cmp canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cmp .pill{position:absolute;top:10px;font-size:12px;padding:3px 10px;border-radius:999px}
+.overlay{position:fixed;inset:0;background:rgba(10,11,14,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;z-index:20}
+.overlay img{max-height:70%;max-width:100%;border-radius:10px;border:1px solid var(--line)}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div dir="rtl" style="height:100%">
+
+<!-- HOME -->
+<section class="view" id="home">
+  <div class="brand"><b>i<i>Swap</i></b><span>انسخ أي شيء من صورة والصقه في أخرى</span></div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span class="lbl">اختر صورة أو صورتين أو ثلاث صور مرة واحدة</span>
+    <div class="grid2">
+      <label class="btn big pick" for="gal">اختر من المعرض<input type="file" id="gal" accept="image/*" multiple hidden></label>
+      <label class="btn big" for="cam">التقاط صورة<input type="file" id="cam" accept="image/*" capture="environment" hidden></label>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span class="lbl" id="countLbl"></span>
+    <div class="thumbs" id="thumbs"></div>
+    <span class="sample-note" id="sampleNote">هذه صور تجريبية لتجربة التطبيق. اختر صورك من المعرض لاستبدالها.</span>
+  </div>
+  <div class="steps">
+    <div style="font-size:14px;font-weight:600">ثلاث خطوات فقط</div>
+    <div class="step"><b>1</b>حدّد أي شيء: وجه، شعر، ثوب، سماء، شخص كامل</div>
+    <div class="step"><b>2</b>اضغط "لصق" لنقله، أو "استبدال" لتبديله بين الصورتين</div>
+    <div class="step"><b>3</b>عدّل الحجم والألوان بإصبعيك، ثم احفظ</div>
+  </div>
+  <button class="btn big primary" id="start" style="margin-top:auto;flex:0 0 auto">ابدأ التعديل</button>
+</section>
+
+<!-- EDITOR -->
+<section class="view" id="editor" hidden>
+  <div class="top">
+    <button class="ibtn" id="back" aria-label="رجوع إلى الرئيسية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="title" id="etitle"></div>
+    <button class="ibtn" id="undo" aria-label="تراجع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 7H9a5 5 0 0 0 0 10h3"/><path d="M12 4l3 3-3 3"/></svg></button>
+    <button class="ibtn" id="redo" aria-label="إعادة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 7h6a5 5 0 0 1 0 10h-3"/><path d="M12 4 9 7l3 3"/></svg></button>
+    <button class="btn primary" id="done">حفظ</button>
+  </div>
+  <div class="ptabs" id="ptabs"></div>
+  <input type="file" id="edFile" accept="image/*" hidden>
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="hint"><span id="hint"></span></div>
+    <div class="zoom">
+      <button id="zin" aria-label="تكبير العرض">+</button>
+      <button id="zout" aria-label="تصغير العرض">−</button>
+      <button id="eye" aria-pressed="false" style="width:auto;padding:0 12px;font-size:13px">إخفاء التحديد</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="panel" id="panel">
+    <button class="grip" id="grip" aria-label="إنزال الأدوات" aria-expanded="true"><span></span><em id="gripTxt">إنزال الأدوات</em></button>
+    <div class="seg">
+      <button data-pane="sel" class="on">التحديد</button>
+      <button data-pane="paste">الجزء المنقول</button>
+      <button data-pane="color">الألوان</button>
+    </div>
+
+    <div class="pane" id="pane-sel">
+      <div class="grid4">
+        <button class="shape" data-shape="rect"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="3" y="5" width="20" height="16" rx="1"/></svg>مستطيل</button>
+        <button class="shape" data-shape="circle"><svg viewBox="0 0 26 26" aria-hidden="true"><ellipse cx="13" cy="13" rx="10" ry="9"/></svg>دائرة</button>
+        <button class="shape" data-shape="tri"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M13 3 23 22H3Z"/></svg>مثلث</button>
+        <button class="shape" data-shape="full"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M3 8V3h5M18 3h5v5M23 18v5h-5M8 23H3v-5"/></svg>كامل الصورة</button>
+      </div>
+      <div class="gesture"><svg viewBox="0 0 28 28" fill="none" stroke="#1FC7B6" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="16" r="4"/><circle cx="19" cy="10" r="4"/><path d="M5 22l-2 3M23 4l2-3"/></svg>اسحب النقاط لتعديل الشكل. بإصبعين: باعِد للتكبير، قرّب للتصغير، ولُفّ للتدوير. انقر مرتين على الحافة لإضافة نقطة.</div>
+      <div id="targetRow" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="lbl">إلى:</span><span id="targets" style="display:flex;gap:6px;flex-wrap:wrap"></span></div>
+      <div class="grid2">
+        <button class="btn big primary" id="copy">نسخ</button>
+        <button class="btn big primary" id="paste">لصق</button>
+      </div>
+      <div class="grid2">
+        <button class="btn" id="swap" style="grid-column:1/-1">استبدال تلقائي بين الصورتين ⇄</button>
+      </div>
+      <p class="tip" id="selTip"></p>
+    </div>
+
+    <div class="pane" id="pane-paste" hidden>
+      <p class="tip" id="noFloat">حدّد جزءاً من التبويب الأول، ثم اضغط "لصق" لنقله أو "استبدال" لتبديله بين الصورتين.</p>
+      <div id="floatCtl" hidden style="display:flex;flex-direction:column;gap:12px">
+        <div class="gesture"><svg viewBox="0 0 28 28" fill="none" stroke="#1FC7B6" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="16" r="4"/><circle cx="19" cy="10" r="4"/><path d="M5 22l-2 3M23 4l2-3"/></svg>اسحب الجزء بإصبع واحد، والحجم والتدوير بإصبعين مباشرة على الصورة</div>
+        <label class="slider strong"><span class="h">شفافية الحواف <output id="fedgeV">12</output></span><input type="range" id="fedge" min="0" max="40" value="12"></label>
+        <label class="check"><input type="checkbox" id="fmatch" checked>مطابقة الإضاءة والألوان مع الصورة تلقائياً</label>
+        <div class="grid3">
+          <button class="btn" id="fflipH">قلب أفقي ↔</button>
+          <button class="btn" id="fflipV">قلب 180° ↕</button>
+          <button class="btn" id="fcancel">إلغاء اللصق</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-color" hidden>
+      <span class="lbl" id="colorLbl">التعديل على الجزء الملصوق فقط</span>
+      <div id="adjBox" style="display:flex;flex-direction:column;gap:8px">
+        <label class="slider"><span class="h">غمق ← → تفتيح <output id="a-lightV">0</output></span><input type="range" id="a-light" min="-100" max="100" value="0"></label>
+        <label class="slider"><span class="h">التباين <output id="a-contrastV">0</output></span><input type="range" id="a-contrast" min="-100" max="100" value="0"></label>
+        <label class="slider"><span class="h">تقليل اللون ← → زيادة اللون <output id="a-satV">0</output></span><input type="range" id="a-sat" min="-100" max="100" value="0"></label>
+        <label class="slider"><span class="h">احمرار <output id="a-redV">0</output></span><input type="range" id="a-red" min="0" max="100" value="0"></label>
+        <label class="slider"><span class="h">اسمرار <output id="a-tanV">0</output></span><input type="range" id="a-tan" min="0" max="100" value="0"></label>
+        <label class="slider"><span class="h">تفتيح الألوان <output id="a-vividV">0</output></span><input type="range" id="a-vivid" min="0" max="100" value="0"></label>
+        <div style="margin-top:4px;display:flex">
+          <button class="btn" id="areset" style="flex:1">إعادة الضبط</button>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section class="view" id="result" hidden>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="ibtn" id="rback" aria-label="رجوع للتعديل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div style="font-size:18px;font-weight:700">النتيجة</div>
+  </div>
+  <div class="cmp" id="cmp">
+    <canvas id="ccv"></canvas>
+    <span class="pill" style="right:10px;background:var(--bg)">قبل</span>
+    <span class="pill" style="left:10px;background:var(--accent);color:var(--accent-ink);font-weight:600">بعد</span>
+  </div>
+  <div class="lbl" style="text-align:center">اسحب الخط في المنتصف للمقارنة</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn big primary" id="save">حفظ الصورة</button>
+    <div class="grid2">
+      <button class="btn" id="rback2">رجوع للتعديل</button>
+      <button class="btn" id="newswap">تبديل جديد</button>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="overlay" id="saveOv" hidden>
+  <img id="saveImg" alt="الصورة النهائية">
+  <p class="tip">اضغط مطولاً على الصورة واختر "حفظ الصورة".</p>
+  <button class="btn" id="saveClose">إغلاق</button>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d'), stage = $('stage');
+const MAXDIM = 1600, ACC = '#1FC7B6';
+const ADJ0 = () => ({light:0, contrast:0, sat:0, red:0, tan:0, vivid:0});
+const ADJK = ['light','contrast','sat','red','tan','vivid'];
+
+/* ---------- state ---------- */
+let photos = [], samples = true, cur = 0, pane = 'sel';
+const view = {zoom:1, px:0, py:0};
+const P = () => photos[cur];
+
+function newCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+function cloneCanvas(src){const c=newCanvas(src.width,src.height);c.getContext('2d').drawImage(src,0,0);return c}
+function makePhoto(img){
+  let w=img.width, h=img.height; const k=Math.min(1, MAXDIM/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+  const base=newCanvas(w,h); base.getContext('2d').drawImage(img,0,0,w,h);
+  return {base, orig:cloneCanvas(base), shape:null, float:null, undo:[], redo:[]};
+}
+function cover(dst, src){const g=dst.getContext('2d'), W=dst.width, H=dst.height, k=Math.max(W/src.width,H/src.height);
+  g.clearRect(0,0,W,H); g.drawImage(src,(W-src.width*k)/2,(H-src.height*k)/2,src.width*k,src.height*k)}
+
+/* ---------- sample photos ---------- */
+function portrait(o){
+  const w=900,h=1100,c=newCanvas(w,h),g=c.getContext('2d');
+  const bg=g.createLinearGradient(0,0,0,h); bg.addColorStop(0,o.bg1); bg.addColorStop(1,o.bg2); g.fillStyle=bg; g.fillRect(0,0,w,h);
+  g.fillStyle=o.shirt; g.beginPath(); g.ellipse(450,1120,360,260,0,Math.PI,0); g.fill();
+  g.fillStyle=o.skinD; g.fillRect(385,700,130,170);
+  g.fillStyle=o.hair; g.beginPath(); g.ellipse(450,440,230,260,0,0,Math.PI*2); g.fill();
+  g.fillStyle=o.skin; g.beginPath(); g.ellipse(450,500,185,235,0,0,Math.PI*2); g.fill();
+  g.fillStyle=o.hair; g.beginPath(); g.ellipse(450,330,200,110,0,Math.PI,0); g.fill();
+  if(o.curl){for(let i=0;i<9;i++){g.beginPath();g.arc(270+i*45,300+Math.sin(i)*14,40,0,Math.PI*2);g.fill()}}
+  g.fillStyle=o.skin; g.beginPath(); g.ellipse(268,510,30,48,0,0,Math.PI*2); g.ellipse(632,510,30,48,0,0,Math.PI*2); g.fill();
+  g.fillStyle='#fff'; [[375,480],[525,480]].forEach(([x,y])=>{g.beginPath();g.ellipse(x,y,34,20,0,0,Math.PI*2);g.fill()});
+  g.fillStyle=o.eye; [[375,480],[525,480]].forEach(([x,y])=>{g.beginPath();g.arc(x,y,15,0,Math.PI*2);g.fill()});
+  g.strokeStyle=o.hair; g.lineWidth=12; g.lineCap='round';
+  g.beginPath(); g.moveTo(335,430); g.quadraticCurveTo(375,o.brow,415,430); g.moveTo(485,430); g.quadraticCurveTo(525,o.brow,565,430); g.stroke();
+  g.strokeStyle=o.skinD; g.lineWidth=7; g.beginPath(); g.moveTo(450,500); g.lineTo(432,585); g.lineTo(462,590); g.stroke();
+  g.strokeStyle=o.lip; g.lineWidth=10; g.beginPath(); g.moveTo(395,640); g.quadraticCurveTo(450,o.smile,505,640); g.stroke();
+  if(o.beard){g.fillStyle=o.hair; g.globalAlpha=.85; g.beginPath(); g.moveTo(275,560); g.quadraticCurveTo(300,760,450,745); g.quadraticCurveTo(600,760,625,560); g.quadraticCurveTo(560,700,450,690); g.quadraticCurveTo(340,700,275,560); g.fill(); g.globalAlpha=1;}
+  if(o.glasses){g.strokeStyle='#222'; g.lineWidth=8; g.strokeRect(325,445,100,72); g.strokeRect(475,445,100,72); g.beginPath(); g.moveTo(425,478); g.lineTo(475,478); g.stroke();}
+  return c;
+}
+function loadSamples(){
+  photos=[
+    makePhoto(portrait({bg1:'#7FB7BE',bg2:'#3E7C87',shirt:'#2B4C7E',skin:'#EDBE9A',skinD:'#D49C76',hair:'#4A2C1A',eye:'#3B6E3B',lip:'#B5524A',brow:405,smile:680})),
+    makePhoto(portrait({bg1:'#F2C46B',bg2:'#D8873B',shirt:'#5C2E4A',skin:'#B97A50',skinD:'#985F3A',hair:'#1A1414',eye:'#2A1A10',lip:'#7A3A30',brow:415,smile:665,curl:true,beard:true,glasses:true}))
+  ];
+  photos[0].shape=circleShape(450,520,215,265); samples=true;
+}
+
+/* ---------- geometry ---------- */
+function circleShape(cx,cy,rx,ry){const pts=[];for(let i=0;i<8;i++){const a=i/8*Math.PI*2;pts.push({x:cx+Math.cos(a)*rx,y:cy+Math.sin(a)*ry})}return {type:'circle',smooth:true,pts}}
+const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+function rectShape(type,x0,y0,x1,y1){const tl={x:x0,y:y0},tr={x:x1,y:y0},br={x:x1,y:y1},bl={x:x0,y:y1};return {type,smooth:false,pts:[tl,mid(tl,tr),tr,mid(tr,br),br,mid(br,bl),bl,mid(bl,tl)]}}
+function makeShape(type, ph){
+  const iw=ph.base.width, ih=ph.base.height;
+  if(type==='full') return rectShape('full',0,0,iw,ih);
+  const s=Math.min(iw,ih)*.2, c=screenToImg(W/2,H/2);
+  const cx=Math.max(s,Math.min(iw-s,c.x)), cy=Math.max(s,Math.min(ih-s,c.y));
+  if(type==='circle') return circleShape(cx,cy,s,s*1.15);
+  if(type==='rect') return rectShape('rect',cx-s,cy-s,cx+s,cy+s);
+  const t={x:cx,y:cy-s*1.1},r={x:cx+s*1.1,y:cy+s*.9},l={x:cx-s*1.1,y:cy+s*.9};
+  return {type,smooth:false,pts:[t,mid(t,r),r,mid(r,l),l,mid(l,t)]};
+}
+function shapePath(sh){
+  const p=new Path2D(), n=sh.pts.length, Q=i=>sh.pts[(i+n)%n];
+  p.moveTo(sh.pts[0].x, sh.pts[0].y);
+  for(let i=0;i<n;i++){const p1=Q(i), p2=Q(i+1);
+    if(sh.smooth){const p0=Q(i-1), p3=Q(i+2); p.bezierCurveTo(p1.x+(p2.x-p0.x)/6,p1.y+(p2.y-p0.y)/6,p2.x-(p3.x-p1.x)/6,p2.y-(p3.y-p1.y)/6,p2.x,p2.y)}
+    else p.lineTo(p2.x,p2.y)}
+  p.closePath(); return p;
+}
+function bounds(pts){let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const q of pts){a=Math.min(a,q.x);b=Math.min(b,q.y);c=Math.max(c,q.x);d=Math.max(d,q.y)}return {x:a,y:b,w:c-a,h:d-b}}
+function centroid(pts){const b=bounds(pts);return {x:b.x+b.w/2,y:b.y+b.h/2}}
+const hitCtx=newCanvas(1,1).getContext('2d');
+function inShape(sh,p){return hitCtx.isPointInPath(shapePath(sh),p.x,p.y)}
+
+/* ---------- pixels ---------- */
+function blurAlpha(a,w,h,r){
+  if(r<1) return; const t=new Float32Array(a.length);
+  for(let pass=0;pass<2;pass++){
+    for(let y=0;y<h;y++){let s=0,o=y*w;for(let x=-r;x<=r;x++)s+=a[o+Math.min(w-1,Math.max(0,x))];
+      for(let x=0;x<w;x++){t[o+x]=s/(2*r+1);s+=a[o+Math.min(w-1,x+r+1)]-a[o+Math.max(0,x-r)]}}
+    for(let x=0;x<w;x++){let s=0;for(let y=-r;y<=r;y++)s+=t[Math.min(h-1,Math.max(0,y))*w+x];
+      for(let y=0;y<h;y++){a[y*w+x]=s/(2*r+1);s+=t[Math.min(h-1,y+r+1)*w+x]-t[Math.max(0,y-r)*w+x]}}
+  }
+}
+function extract(ph, sh){
+  const feather=0, b=bounds(sh.pts), pad=(sh.smooth?Math.max(b.w,b.h)*.08:2);
+  const x0=Math.max(0,Math.floor(b.x-pad)), y0=Math.max(0,Math.floor(b.y-pad));
+  const x1=Math.min(ph.base.width,Math.ceil(b.x+b.w+pad)), y1=Math.min(ph.base.height,Math.ceil(b.y+b.h+pad));
+  const w=x1-x0, h=y1-y0; if(w<2||h<2) return null;
+  const m=newCanvas(w,h), mg=m.getContext('2d'); mg.translate(-x0,-y0); mg.fillStyle='#000'; mg.fill(shapePath(sh));
+  const md=mg.getImageData(0,0,w,h).data, a=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++) a[i]=md[i*4+3];
+  const out=newCanvas(w,h), og=out.getContext('2d'); og.drawImage(ph.base,x0,y0,w,h,0,0,w,h);
+  const od=og.getImageData(0,0,w,h); for(let i=0;i<w*h;i++) od.data[i*4+3]=od.data[i*4+3]*a[i]/255;
+  og.putImageData(od,0,0); return out;
+}
+const isZero=a=>ADJK.every(k=>!a[k]);
+function applyAdj(d,a,m){
+  const L=a.light*1.1, C=a.contrast*1.28, cf=(259*(C+255))/(255*(259-C)), S=1+a.sat/100,
+        R=a.red/100, T=a.tan/100, V=a.vivid/100, mr=m?m.r:1, mg=m?m.g:1, mb=m?m.b:1;
+  for(let i=0;i<d.length;i+=4){
+    if(!d[i+3]) continue;
+    let r=d[i]*mr, g=d[i+1]*mg, b=d[i+2]*mb;
+    if(L){r+=L;g+=L;b+=L}
+    if(C){r=cf*(r-128)+128;g=cf*(g-128)+128;b=cf*(b-128)+128}
+    if(S!==1){const y=.299*r+.587*g+.114*b;r=y+(r-y)*S;g=y+(g-y)*S;b=y+(b-y)*S}
+    if(R){r+=R*40;g-=R*9;b-=R*5}
+    if(T){r=r*(1-.10*T)+T*6;g=g*(1-.21*T);b=b*(1-.36*T)}
+    if(V){const y=.299*r+.587*g+.114*b;r+=(255-r)*V*.3+(r-y)*V*.35;g+=(255-g)*V*.3+(g-y)*V*.35;b+=(255-b)*V*.3+(b-y)*V*.35}
+    d[i]=r;d[i+1]=g;d[i+2]=b;
+  }
+}
+function floatCanvas(f){
+  const m=f.useMatch?f.match:null, key=JSON.stringify([f.adj,m,f.edge]);
+  if(f.cache&&f.cacheKey===key) return f.cache;
+  const c=cloneCanvas(f.src), g=c.getContext('2d'), id=g.getImageData(0,0,c.width,c.height), d=id.data;
+  if(!isZero(f.adj)||m) applyAdj(d,f.adj,m);
+  if(f.edge>0){ // soften the edges only, fading inward so the middle stays fully solid
+    const w=c.width, h=c.height, a=new Float32Array(w*h); for(let i=0;i<w*h;i++) a[i]=d[i*4+3];
+    blurAlpha(a,w,h,Math.max(1,Math.round(f.edge)));
+    for(let i=0;i<w*h;i++){const v=Math.max(0,Math.min(255,(a[i]-127.5)*2)); d[i*4+3]=Math.min(d[i*4+3],v)}
+  }
+  g.putImageData(id,0,0); f.cache=c; f.cacheKey=key; return c;
+}
+function meanRGB(d,minA){let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]>=minA){r+=d[i];g+=d[i+1];b+=d[i+2];n++}}return n?{r:r/n,g:g/n,b:b/n}:null}
+function computeMatch(ph,f){
+  const s=meanRGB(f.src.getContext('2d').getImageData(0,0,f.src.width,f.src.height).data,200);
+  const w=f.src.width*f.scale*.6, h=f.src.height*f.scale*.6;
+  const x0=Math.max(0,Math.round(f.x-w/2)), y0=Math.max(0,Math.round(f.y-h/2));
+  const x1=Math.min(ph.base.width,Math.round(f.x+w/2)), y1=Math.min(ph.base.height,Math.round(f.y+h/2));
+  if(!s||x1-x0<2||y1-y0<2){f.match=null;return}
+  const t=meanRGB(ph.base.getContext('2d').getImageData(x0,y0,x1-x0,y1-y0).data,1);
+  const k=(a,b)=>Math.max(.6,Math.min(1.6,(a+1)/(b+1)));
+  f.match={r:k(t.r,s.r),g:k(t.g,s.g),b:k(t.b,s.b)};
+}
+
+/* ---------- history ---------- */
+function pushUndo(ph){ph.undo.push(cloneCanvas(ph.base)); if(ph.undo.length>20) ph.undo.shift(); ph.redo=[]}
+function undo(){const ph=P(); if(ph.float){ph.float=null; refresh(true); return} if(!ph.undo.length) return; ph.redo.push(ph.base); ph.base=ph.undo.pop(); refresh(true)}
+function redo(){const ph=P(); if(!ph.redo.length) return; ph.undo.push(ph.base); ph.base=ph.redo.pop(); refresh(true)}
+
+/* ---------- float (pasted part) ---------- */
+function newFloat(ph, src, pos){
+  let x=ph.base.width/2, y=ph.base.height/2, scale;
+  if(pos){x=pos.x; y=pos.y; scale=pos.scale}
+  else if(ph.shape&&ph.shape.type!=='full'){const b=bounds(ph.shape.pts); x=b.x+b.w/2; y=b.y+b.h/2; scale=Math.sqrt((b.w*b.h)/(src.width*src.height))*1.1}
+  else scale=Math.min(1, ph.base.width*.6/src.width, ph.base.height*.6/src.height);
+  const f={src,x,y,scale:Math.max(.05,Math.min(6,scale)),rot:0,opacity:1,edge:+$('fedge').value,flipH:false,flipV:false,adj:ADJ0(),match:null,useMatch:$('fmatch').checked,cache:null,cacheKey:''};
+  computeMatch(ph,f); return f;
+}
+function drawFloat(g,f){
+  g.save(); g.translate(f.x,f.y); g.rotate(f.rot*Math.PI/180); g.scale(f.scale*(f.flipH?-1:1), f.scale*(f.flipV?-1:1));
+  g.globalAlpha=f.opacity; const c=floatCanvas(f); g.drawImage(c,-c.width/2,-c.height/2); g.restore();
+}
+function commitFloat(ph){if(!ph.float) return; pushUndo(ph); const nb=cloneCanvas(ph.base); drawFloat(nb.getContext('2d'),ph.float); ph.base=nb; ph.float=null}
+function inFloat(f,p){
+  const a=-f.rot*Math.PI/180, dx=p.x-f.x, dy=p.y-f.y;
+  const lx=(dx*Math.cos(a)-dy*Math.sin(a))/f.scale, ly=(dx*Math.sin(a)+dy*Math.cos(a))/f.scale;
+  return Math.abs(lx)<=f.src.width/2 && Math.abs(ly)<=f.src.height/2;
+}
+
+/* ---------- view ---------- */
+let dpr=1, W=0, H=0;
+function resize(){dpr=window.devicePixelRatio||1; W=stage.clientWidth; H=stage.clientHeight; if(!W||!H) return; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); draw()}
+function tf(){const ph=P(), iw=ph.base.width, ih=ph.base.height, fit=Math.min(W/iw,H/ih)*.94, s=fit*view.zoom;
+  return {s, ox:W/2+view.px-iw*s/2, oy:H/2+view.py-ih*s/2}}
+function screenToImg(x,y){const t=tf();return {x:(x-t.ox)/t.s, y:(y-t.oy)/t.s}}
+function zoomAt(k,sx,sy){
+  const t=tf(), p={x:(sx-t.ox)/t.s,y:(sy-t.oy)/t.s}; view.zoom=Math.max(.3,Math.min(12,view.zoom*k));
+  const ph=P(), s2=tf().s; view.px=(sx-p.x*s2)-W/2+ph.base.width*s2/2; view.py=(sy-p.y*s2)-H/2+ph.base.height*s2/2; draw();
+}
+let hideSel=false;
+let raf=0; function draw(){if(!raf) raf=requestAnimationFrame(render)}
+function render(){
+  raf=0; ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); const ph=P(); if(!ph||!W) return;
+  const t=tf(), lw=1/t.s; ctx.setTransform(dpr*t.s,0,0,dpr*t.s,dpr*t.ox,dpr*t.oy); ctx.imageSmoothingQuality='high';
+  ctx.drawImage(ph.base,0,0);
+  if(ph.float){const f=ph.float; drawFloat(ctx,f); if(hideSel) return;
+    ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot*Math.PI/180);
+    const w=f.src.width*f.scale, h=f.src.height*f.scale;
+    ctx.lineWidth=3*lw; ctx.strokeStyle='rgba(0,0,0,.55)'; ctx.strokeRect(-w/2,-h/2,w,h);
+    ctx.setLineDash([8*lw,6*lw]); ctx.lineWidth=2.5*lw; ctx.strokeStyle=ACC; ctx.strokeRect(-w/2,-h/2,w,h); ctx.setLineDash([]);
+    for(const [x,y] of [[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]]){ctx.beginPath();ctx.arc(x,y,4*lw,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2*lw;ctx.strokeStyle=ACC;ctx.stroke()}
+    ctx.restore();
+  }
+  if(ph.shape && !ph.float && !hideSel){
+    const path=shapePath(ph.shape);
+    ctx.fillStyle='rgba(31,199,182,.14)'; ctx.fill(path);
+    ctx.lineWidth=3*lw; ctx.strokeStyle='#fff'; ctx.stroke(path);
+    ctx.setLineDash([8*lw,6*lw]); ctx.lineWidth=2.5*lw; ctx.strokeStyle=ACC; ctx.stroke(path); ctx.setLineDash([]);
+    ph.shape.pts.forEach((q,i)=>{const on=drag&&drag.mode==='point'&&drag.i===i;ctx.beginPath();ctx.arc(q.x,q.y,(on?6:4.5)*lw,0,Math.PI*2);ctx.fillStyle=on?ACC:'#fff';ctx.fill();ctx.lineWidth=2*lw;ctx.strokeStyle=on?'#fff':ACC;ctx.stroke()});
+  }
+}
+
+/* ---------- touch & mouse ---------- */
+const ptrs=new Map(); let drag=null, lastTap={t:0,x:0,y:0};
+function local(e){const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+function pinchInfo(){const [a,b]=[...ptrs.values()];return {d:Math.hypot(a.x-b.x,a.y-b.y)||1, ang:Math.atan2(b.y-a.y,b.x-a.x), mx:(a.x+b.x)/2, my:(a.y+b.y)/2}}
+cv.addEventListener('pointerdown',e=>{
+  const ph=P(); if(!ph) return; cv.setPointerCapture(e.pointerId); const l=local(e); ptrs.set(e.pointerId,l);
+  if(ptrs.size===2){
+    const pi=pinchInfo(), m=screenToImg(pi.mx,pi.my), fp=[...ptrs.values()].map(q=>screenToImg(q.x,q.y)).concat([m]);
+    let kind='view';
+    if(ph.float){ if(fp.some(q=>inFloat(ph.float,q))) kind='float' }
+    else if(ph.shape && (fp.some(q=>inShape(ph.shape,q)) || (drag&&drag.mode==='point'))) kind='shape';
+    drag={mode:'pinch',kind,pi,mid:m,zoom:view.zoom,px:view.px,py:view.py,
+      f:ph.float?{x:ph.float.x,y:ph.float.y,scale:ph.float.scale,rot:ph.float.rot}:null,
+      pts:ph.shape?ph.shape.pts.map(q=>({...q})):null};
+    return;
+  }
+  if(ptrs.size>2) return;
+  const p=screenToImg(l.x,l.y), s=tf().s;
+  if(ph.float){ if(inFloat(ph.float,p)) drag={mode:'float',p0:p,x0:ph.float.x,y0:ph.float.y}; else drag={mode:'pan',l0:l,px:view.px,py:view.py}; return }
+  if(ph.shape){
+    let best=-1, bd=28/s; ph.shape.pts.forEach((q,i)=>{const d=Math.hypot(q.x-p.x,q.y-p.y); if(d<bd){bd=d;best=i}});
+    if(best>=0){const q=ph.shape.pts[best]; drag={mode:'point',i:best,dx:q.x-p.x,dy:q.y-p.y}; draw(); return}
+    if(inShape(ph.shape,p)){drag={mode:'shape',p0:p,pts:ph.shape.pts.map(q=>({...q}))}; return}
+  }
+  drag={mode:'pan',l0:l,px:view.px,py:view.py};
+});
+cv.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)||!drag) return; const l=local(e); ptrs.set(e.pointerId,l); const ph=P();
+  if(drag.mode==='pinch'){
+    if(ptrs.size!==2) return;
+    const pi=pinchInfo(), k=pi.d/drag.pi.d, da=pi.ang-drag.pi.ang;
+    if(drag.kind==='float'&&ph.float){const f=ph.float, m=screenToImg(pi.mx,pi.my);
+      f.scale=Math.max(.05,Math.min(8,drag.f.scale*k)); f.rot=drag.f.rot+da*180/Math.PI;
+      f.x=drag.f.x+(m.x-drag.mid.x); f.y=drag.f.y+(m.y-drag.mid.y);}
+    else if(drag.kind==='shape'&&ph.shape){const c=centroid(drag.pts), m=screenToImg(pi.mx,pi.my), cs=Math.cos(da), sn=Math.sin(da);
+      ph.shape.pts.forEach((q,i)=>{const dx=(drag.pts[i].x-c.x)*k, dy=(drag.pts[i].y-c.y)*k;
+        q.x=c.x+dx*cs-dy*sn+(m.x-drag.mid.x); q.y=c.y+dx*sn+dy*cs+(m.y-drag.mid.y)})}
+    else {view.zoom=drag.zoom; view.px=drag.px; view.py=drag.py; zoomAt(k,drag.pi.mx,drag.pi.my); view.px+=pi.mx-drag.pi.mx; view.py+=pi.my-drag.pi.my}
+    draw(); return;
+  }
+  const p=screenToImg(l.x,l.y);
+  if(drag.mode==='float'){ph.float.x=drag.x0+p.x-drag.p0.x; ph.float.y=drag.y0+p.y-drag.p0.y}
+  else if(drag.mode==='point'){const q=ph.shape.pts[drag.i]; q.x=p.x+drag.dx; q.y=p.y+drag.dy}
+  else if(drag.mode==='shape'){ph.shape.pts.forEach((q,i)=>{q.x=drag.pts[i].x+p.x-drag.p0.x;q.y=drag.pts[i].y+p.y-drag.p0.y})}
+  else if(drag.mode==='pan'){view.px=drag.px+l.x-drag.l0.x; view.py=drag.py+l.y-drag.l0.y}
+  draw();
+});
+function endPtr(e){
+  if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); const ph=P();
+  if(drag&&(drag.mode==='float'||(drag.mode==='pinch'&&drag.kind==='float'))&&ph.float&&ph.float.useMatch){computeMatch(ph,ph.float); draw()}
+  if(drag&&(drag.mode==='shape'||drag.mode==='pan')&&ptrs.size===0){
+    const l=local(e), now=performance.now();
+    if(now-lastTap.t<320&&Math.hypot(l.x-lastTap.x,l.y-lastTap.y)<24){addPointAt(screenToImg(l.x,l.y)); lastTap={t:0,x:0,y:0}}
+    else lastTap={t:now,x:l.x,y:l.y};
+  }
+  if(ptrs.size===0||(drag&&drag.mode==='pinch')){drag=null; draw()}
+}
+cv.addEventListener('pointerup',endPtr); cv.addEventListener('pointercancel',endPtr);
+function addPointAt(p){
+  const ph=P(); if(!ph.shape||ph.float) return; const pts=ph.shape.pts, n=pts.length, s=tf().s;
+  let best=-1, bd=26/s, proj=null;
+  for(let i=0;i<n;i++){const a=pts[i], b=pts[(i+1)%n], vx=b.x-a.x, vy=b.y-a.y, L=vx*vx+vy*vy||1;
+    const t=Math.max(0,Math.min(1,((p.x-a.x)*vx+(p.y-a.y)*vy)/L)), q={x:a.x+vx*t,y:a.y+vy*t}, d=Math.hypot(q.x-p.x,q.y-p.y);
+    if(d<bd&&t>.1&&t<.9){bd=d;best=i;proj=q}}
+  if(best>=0){pts.splice(best+1,0,proj); toast('أُضيفت نقطة جديدة'); draw()}
+}
+cv.addEventListener('wheel',e=>{
+  e.preventDefault(); const ph=P(), l=local(e), p=screenToImg(l.x,l.y), k=Math.exp(-e.deltaY*.0015);
+  if(ph.float&&inFloat(ph.float,p)){ph.float.scale=Math.max(.05,Math.min(8,ph.float.scale*k)); draw()}
+  else if(ph.shape&&!ph.float&&inShape(ph.shape,p)){const c=centroid(ph.shape.pts); ph.shape.pts.forEach(q=>{q.x=c.x+(q.x-c.x)*k;q.y=c.y+(q.y-c.y)*k}); draw()}
+  else zoomAt(k,l.x,l.y);
+},{passive:false});
+
+/* ---------- editor UI ---------- */
+let toastT=0; function toast(msg){const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800)}
+function hint(){
+  const ph=P(); let h;
+  if(ph.float) h='اسحب الجزء المنقول، وكبّره أو دوّره بإصبعين';
+  else if(ph.shape) h='اسحب النقاط ليغطي الشكل ما تريد نقله';
+  else h='اختر شكل التحديد من الأسفل';
+  $('hint').textContent=h;
+}
+function renderPTabs(){
+  const box=$('ptabs'); box.innerHTML='';
+  photos.forEach((ph,i)=>{
+    const b=document.createElement('button'); b.className='ptab'+(i===cur?' on':'');
+    const c=newCanvas(72,72); cover(c,ph.base); b.appendChild(c);
+    const s=document.createElement('span'); s.textContent=(i+1)+(ph.float?' •':''); b.setAttribute('aria-label','صورة '+(i+1)); b.appendChild(s);
+    b.onclick=()=>selectPhoto(i);
+    const w=document.createElement('div'); w.className='ptabw'; w.appendChild(b);
+    const x=document.createElement('button'); x.className='ptabx'; x.textContent='×'; x.setAttribute('aria-label','إغلاق صورة '+(i+1));
+    x.onclick=()=>closePhoto(i); w.appendChild(x); box.appendChild(w);
+  });
+  if(photos.length<3){const a=document.createElement('button'); a.className='ptab add'; a.textContent='+ صورة'; a.setAttribute('aria-label','إضافة صورة'); a.onclick=()=>{edMode='add'; $('edFile').click()}; box.appendChild(a)}
+}
+function closePhoto(i){
+  photos.splice(i,1); target=null;
+  if(!photos.length){go('home'); return}
+  cur=Math.min(cur>i?cur-1:cur, photos.length-1); selectPhoto(cur); toast('أُغلقت الصورة');
+}
+let edMode='add';
+$('edFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const ph=await readImage(f); if(!ph){toast('تعذّر فتح هذه الصورة. جرّب JPG أو PNG'); return}
+  samples=false;
+  if(edMode==='replace'){photos[cur]=ph; toast('تم تغيير الصورة')} else {photos.push(ph); cur=photos.length-1; toast('أُضيفت الصورة')}
+  target=null; selectPhoto(cur);
+};
+function selectPhoto(i){cur=i; view.zoom=1; view.px=0; view.py=0; refresh(true)}
+function refresh(tabs){
+  if(tabs) renderPTabs(); const ph=P();
+  $('etitle').textContent=`صورة ${cur+1} من ${photos.length}`;
+  document.querySelectorAll('[data-shape]').forEach(b=>b.classList.toggle('on',!!ph.shape&&ph.shape.type===b.dataset.shape));
+  $('undo').disabled=!ph.undo.length&&!ph.float; $('redo').disabled=!ph.redo.length;
+  renderTargets();
+  $('swap').disabled=photos.length<2||(!ph.shape&&!photos[targetIdx()].shape);
+  $('copy').disabled=!ph.shape; $('paste').disabled=!clip;
+  $('selTip').textContent=!ph.shape?'اختر شكلاً أولاً':(clip?`منسوخ من صورة ${clip.from+1} ✓ انتقل إلى أي صورة من الأعلى واضغط "لصق".`:'حدّد الجزء ثم اضغط "نسخ".');
+  $('noFloat').hidden=!!ph.float; $('floatCtl').hidden=!ph.float;
+  if(ph.float){$('fedge').value=ph.float.edge; $('fedgeV').textContent=ph.float.edge; $('fmatch').checked=ph.float.useMatch}
+  const a=ph.float?ph.float.adj:ADJ0();
+  ADJK.forEach(k=>{const el=$('a-'+k); el.value=a[k]; el.disabled=!ph.float; $('a-'+k+'V').textContent=a[k]});
+  $('areset').disabled=!ph.float;
+  $('colorLbl').textContent=ph.float?'التعديل على الجزء الملصوق فقط':'الصق جزءاً أولاً، ثم عدّل ألوانه هنا';
+  hint(); draw();
+}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  pane=b.dataset.pane; document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
+  ['sel','paste','color'].forEach(p=>$('pane-'+p).hidden=p!==pane); refresh();
+}));
+const showPane=p=>document.querySelector(`.seg button[data-pane="${p}"]`).click();
+document.querySelectorAll('[data-shape]').forEach(b=>b.addEventListener('click',()=>{const ph=P(); if(ph.float) commitFloat(ph); ph.shape=makeShape(b.dataset.shape,ph); refresh(true)}));
+/* ---------- paste (move) & swap: the selection itself is what gets moved ---------- */
+let target=null;
+function targetIdx(){if(photos.length<2) return cur; if(target==null||target===cur||target>=photos.length) target=(cur+1)%photos.length; return target}
+function renderTargets(){
+  const row=$('targetRow'), box=$('targets'); row.hidden=photos.length<3; box.innerHTML='';
+  if(photos.length<3) return; const t=targetIdx();
+  photos.forEach((_,i)=>{if(i===cur) return; const b=document.createElement('button'); b.className='btn'+(i===t?' primary':''); b.style.minHeight='36px';
+    b.textContent='صورة '+(i+1); b.onclick=()=>{target=i; refresh()}; box.appendChild(b)});
+}
+function grab(ph){
+  try{const c=extract(ph,ph.shape); if(!c) toast('الشكل خارج حدود الصورة'); return c}catch(_){toast('تعذّر قراءة هذه الصورة. أعد اختيارها من المعرض'); return null}
+}
+function mappedShape(from, to){
+  const kx=to.base.width/from.base.width, ky=to.base.height/from.base.height;
+  return {type:from.shape.type, smooth:from.shape.smooth, pts:from.shape.pts.map(q=>({x:q.x*kx,y:q.y*ky}))};
+}
+let clip=null; // {canvas, from, cx, cy, w, h}: what was copied and where it came from
+$('copy').onclick=()=>{
+  const A=P(); if(!A.shape) return; if(A.float) commitFloat(A);
+  const part=grab(A); if(!part) return; const b=bounds(A.shape.pts);
+  clip={canvas:part, from:cur, cx:(b.x+b.w/2)/A.base.width, cy:(b.y+b.h/2)/A.base.height, k:A.base.width};
+  refresh(); toast(photos.length>1?'تم النسخ ✓ انتقل إلى الصورة الأخرى واضغط "لصق"':'تم النسخ ✓ اضغط "لصق"');
+};
+$('paste').onclick=()=>{
+  if(!clip) return; const T=P(); if(T.float) commitFloat(T);
+  let pos;
+  if(clip.from===cur) pos={x:clip.cx*T.base.width+clip.canvas.width*.2, y:clip.cy*T.base.height+clip.canvas.height*.1, scale:1};
+  else if(T.shape&&T.shape.type!=='full') pos=null;
+  else {const s=T.base.width/clip.k; pos={x:clip.cx*T.base.width, y:clip.cy*T.base.height, scale:s}}
+  T.float=newFloat(T,clip.canvas,pos); showPane('paste'); refresh(true);
+  toast('تم اللصق. حرّكه أو كبّره بإصبعين');
+};
+$('swap').onclick=()=>{
+  const A=P(), t=targetIdx(), B=photos[t]; if(t===cur||(!A.shape&&!B.shape)) return;
+  if(!A.shape) A.shape=mappedShape(B,A);
+  if(A.float) commitFloat(A); if(B.float) commitFloat(B);
+  if(!B.shape) B.shape=mappedShape(A,B);
+  const pa=grab(A), pb=grab(B); if(!pa||!pb){toast('تأكد أن التحديد داخل حدود الصورتين'); return}
+  B.float=newFloat(B,pa); A.float=newFloat(A,pb);
+  showPane('paste'); refresh(true);
+  toast(`تم الاستبدال بين صورة ${cur+1} وصورة ${t+1}. عدّل الحجم والألوان كما تريد`);
+};
+$('fedge').oninput=e=>{const f=P().float; $('fedgeV').textContent=e.target.value; if(f){f.edge=+e.target.value; draw()}};
+$('fmatch').onchange=e=>{const ph=P(), f=ph.float; if(f){f.useMatch=e.target.checked; if(f.useMatch) computeMatch(ph,f); draw()}};
+$('fflipH').onclick=()=>{const f=P().float; if(f){f.flipH=!f.flipH; draw()}};
+$('fflipV').onclick=()=>{const f=P().float; if(f){f.flipV=!f.flipV; draw()}};
+$('fcancel').onclick=()=>{P().float=null; refresh(true)};
+ADJK.forEach(k=>$('a-'+k).addEventListener('input',e=>{const f=P().float; if(!f) return; f.adj[k]=+e.target.value; $('a-'+k+'V').textContent=f.adj[k]; draw()}));
+$('areset').onclick=()=>{const f=P().float; if(!f) return; f.adj=ADJ0(); refresh()};
+$('grip').onclick=()=>{const pnl=$('panel'), min=pnl.classList.toggle('min'); $('grip').setAttribute('aria-expanded',String(!min)); $('gripTxt').textContent=min?'إظهار الأدوات':'إنزال الأدوات'; setTimeout(resize,0)};
+$('eye').onclick=()=>{hideSel=!hideSel; $('eye').textContent=hideSel?'إظهار التحديد':'إخفاء التحديد'; $('eye').setAttribute('aria-pressed',String(hideSel)); $('eye').style.borderColor=hideSel?'var(--accent)':''; draw()};
+$('undo').onclick=undo; $('redo').onclick=redo;
+$('zin').onclick=()=>zoomAt(1.25,W/2,H/2); $('zout').onclick=()=>zoomAt(.8,W/2,H/2);
+document.addEventListener('keydown',e=>{if(!$('editor').hidden&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault(); e.shiftKey?redo():undo()}});
+
+/* ---------- views ---------- */
+function go(v){['home','editor','result'].forEach(x=>$(x).hidden=x!==v); if(v==='editor'){resize(); refresh(true)} if(v==='result') drawCmp(); if(v==='home') renderHome()}
+function renderHome(){
+  const box=$('thumbs'); box.innerHTML='';
+  photos.forEach((ph,i)=>{
+    const d=document.createElement('div'); d.className='thumb'; const c=newCanvas(240,320); cover(c,ph.base); d.appendChild(c);
+    const t=document.createElement('span'); t.className='tag'; t.textContent='صورة '+(i+1); d.appendChild(t);
+    const x=document.createElement('button'); x.className='x'; x.textContent='×'; x.setAttribute('aria-label','إزالة صورة '+(i+1));
+    x.onclick=()=>{photos.splice(i,1); if(cur>=photos.length) cur=Math.max(0,photos.length-1); renderHome()}; d.appendChild(x);
+    box.appendChild(d);
+  });
+  if(photos.length<3){const a=document.createElement('label'); a.className='thumb add btn'; a.htmlFor='gal'; a.textContent='+ إضافة صورة'; box.appendChild(a)}
+  $('countLbl').textContent=`الصور المختارة: ${photos.length} من 3`;
+  $('sampleNote').hidden=!samples; $('start').disabled=!photos.length;
+}
+function loadFiles(files){
+  const list=[...files].filter(f=>f.type.startsWith('image/')||!f.type); if(!list.length) return;
+  if(samples){photos=[]; samples=false}
+  const room=3-photos.length, take=list.slice(0,room);
+  if(list.length>room) toast('الحد الأقصى ثلاث صور');
+  Promise.all(take.map(readImage))
+  .then(arr=>{const ok=arr.filter(Boolean); photos.push(...ok); if(ok.length<take.length) alertHome('تعذّر فتح بعض الصور. جرّب JPG أو PNG'); cur=0; renderHome()});
+}
+/* Decode without tainting the canvas (a tainted canvas makes copying silently fail). */
+async function readImage(f){
+  try{ if(window.createImageBitmap){const bm=await createImageBitmap(f); const ph=makePhoto(bm); bm.close&&bm.close(); if(canRead(ph)) return ph} }catch(_){}
+  try{
+    const url=await new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f)});
+    const img=await new Promise((res,rej)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url});
+    const ph=makePhoto(img); if(canRead(ph)) return ph;
+  }catch(_){}
+  return null;
+}
+function canRead(ph){try{ph.base.getContext('2d').getImageData(0,0,1,1); return true}catch(_){return false}}
+function alertHome(m){$('sampleNote').hidden=false; $('sampleNote').textContent=m}
+$('gal').onchange=e=>{loadFiles(e.target.files); e.target.value=''};
+$('cam').onchange=e=>{loadFiles(e.target.files); e.target.value=''};
+$('start').onclick=()=>{if(photos.length){cur=0; view.zoom=1; view.px=0; view.py=0; go('editor')}};
+$('back').onclick=()=>go('home');
+$('done').onclick=()=>go('result');
+$('rback').onclick=$('rback2').onclick=()=>go('editor');
+$('newswap').onclick=()=>{loadSamples(); target=null; clip=null; go('home')};
+
+/* ---------- result: before/after ---------- */
+const ccv=$('ccv'), cctx=ccv.getContext('2d'); let split=.5;
+function finalCanvas(){const ph=P(), out=cloneCanvas(ph.base); if(ph.float) drawFloat(out.getContext('2d'),ph.float); return out}
+function drawCmp(){
+  const box=$('cmp'), w=box.clientWidth, h=box.clientHeight, d=window.devicePixelRatio||1; if(!w||!h) return;
+  ccv.width=Math.round(w*d); ccv.height=Math.round(h*d); const ph=P(), fin=finalCanvas();
+  const k=Math.min(w/fin.width,h/fin.height), iw=fin.width*k, ih=fin.height*k, ox=(w-iw)/2, oy=(h-ih)/2, sx=w*split;
+  cctx.setTransform(d,0,0,d,0,0); cctx.clearRect(0,0,w,h);
+  cctx.save(); cctx.beginPath(); cctx.rect(0,0,sx,h); cctx.clip(); cctx.drawImage(fin,ox,oy,iw,ih); cctx.restore();
+  cctx.save(); cctx.beginPath(); cctx.rect(sx,0,w-sx,h); cctx.clip(); cctx.drawImage(ph.orig,ox,oy,iw,ih); cctx.restore();
+  cctx.fillStyle='#fff'; cctx.fillRect(sx-1.5,0,3,h); cctx.beginPath(); cctx.arc(sx,h/2,18,0,Math.PI*2); cctx.fill();
+  cctx.strokeStyle='#12141A'; cctx.lineWidth=2.5; cctx.lineCap='round'; cctx.beginPath();
+  cctx.moveTo(sx-7,h/2-6); cctx.lineTo(sx-13,h/2); cctx.lineTo(sx-7,h/2+6); cctx.moveTo(sx+7,h/2-6); cctx.lineTo(sx+13,h/2); cctx.lineTo(sx+7,h/2+6); cctx.stroke();
+}
+let cmpDrag=false;
+ccv.addEventListener('pointerdown',e=>{cmpDrag=true; ccv.setPointerCapture(e.pointerId); moveSplit(e)});
+ccv.addEventListener('pointermove',e=>{if(cmpDrag) moveSplit(e)});
+ccv.addEventListener('pointerup',()=>cmpDrag=false); ccv.addEventListener('pointercancel',()=>cmpDrag=false);
+function moveSplit(e){const r=ccv.getBoundingClientRect(); split=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); drawCmp()}
+
+$('save').onclick=async()=>{
+  const out=finalCanvas(), blob=await new Promise(r=>out.toBlob(r,'image/png'));
+  let dl=null; try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(_){}
+  if(dl&&blob){try{await dl.save({filename:`iswap-${cur+1}.png`,data:blob}); return}catch(err){if(err&&err.code==='declined') return}}
+  if(!window.claude&&blob){ // standalone site (GitHub Pages): share sheet on phones, normal download elsewhere
+    const file=new File([blob],`iswap-${cur+1}.png`,{type:'image/png'});
+    try{ if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]}); return} }catch(err){ if(err&&err.name==='AbortError') return }
+    try{const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); return}catch(_){}
+  }
+  $('saveImg').src=out.toDataURL('image/png'); $('saveOv').hidden=false;
+};
+$('saveClose').onclick=()=>$('saveOv').hidden=true;
+
+new ResizeObserver(()=>{if(!$('editor').hidden) resize(); if(!$('result').hidden) drawCmp()}).observe(document.body);
+new ResizeObserver(()=>{if(!$('editor').hidden) resize()}).observe(stage);
+loadSamples(); renderHome();
+})();
+</script>
+</body>
+</html>
