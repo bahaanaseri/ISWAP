@@ -33,9 +33,10 @@ button:focus-visible,label.btn:focus-within,input:focus-visible{outline:2px soli
 button:disabled{opacity:.4;cursor:default}
 .view{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:14px;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13px;text-decoration:none}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.btn.big{min-height:54px;border-radius:16px;font-size:16px}
+.btn.big{min-height:44px;border-radius:12px;font-size:15px}
+#home .btn.big{min-height:54px;border-radius:16px;font-size:16px}
 .ibtn{width:44px;height:44px;border-radius:12px;border:0;background:var(--panel);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
 .ibtn svg{width:20px;height:20px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -64,7 +65,7 @@ button:disabled{opacity:.4;cursor:default}
 .sample-note button{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0}
 
 /* editor */
-#editor{padding-inline:0;padding-bottom:0;gap:0}
+#editor{padding-inline:0;padding-bottom:0;gap:0;position:relative}
 .top{display:flex;align-items:center;gap:8px;padding:0 14px 8px}
 .top .title{flex:1 1 auto;font-size:15px;font-weight:600;min-width:0}
 .ptabs{display:flex;gap:8px;padding:0 14px 8px;overflow-x:auto}
@@ -79,22 +80,22 @@ button:disabled{opacity:.4;cursor:default}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .hint{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:center;pointer-events:none}
 .hint span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;text-align:center}
-.zoom{position:absolute;bottom:24px;left:10px;display:flex;gap:6px}
+.zoom{position:absolute;top:8px;left:10px;display:flex;gap:6px}
 .zoom button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:18px}
-.toast{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:13px;max-width:90%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:3}
+.toast{position:absolute;top:52px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:13px;max-width:90%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:3}
 .toast.show{opacity:1}
-.panel{background:var(--panel);border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:2;display:flex;flex-direction:column;max-height:44%;padding-bottom:env(safe-area-inset-bottom,0px)}
+.panel{background:rgba(18,20,26,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:16px 16px 0 0;position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;flex-direction:column;max-height:45%;padding-bottom:env(safe-area-inset-bottom,0px)}
 .grip{border:0;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 0 0;color:var(--muted);font-size:12px;width:100%}
 .grip span{width:36px;height:4px;border-radius:2px;background:var(--dash)}
 .grip em{font-style:normal}
 .panel.min .seg,.panel.min .pane{display:none!important}
 .panel.min .grip{padding:8px 0 10px}
-.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:8px;border-bottom:1px solid var(--line)}
-.seg button{border:0;background:transparent;border-radius:10px;padding:10px 0;color:var(--muted);font-size:14px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;border-radius:9px;padding:6px 0;color:var(--muted);font-size:13px}
 .seg button.on{background:var(--soft);color:var(--ink);font-weight:600}
-.pane{padding:12px 14px 16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0}
-.shape{min-height:64px;border-radius:12px;border:1px solid var(--line);background:var(--field);font-size:12.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px}
-.shape svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.pane{padding:8px 12px 10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:0}
+.shape{min-height:44px;border-radius:10px;border:1px solid var(--line);background:rgba(37,41,51,.7);font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px}
+.shape svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
 .shape.on{border:2px solid var(--accent);color:var(--accent)}
 .gesture{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink2)}
 .gesture svg{width:28px;height:28px;flex:0 0 auto}
@@ -135,12 +136,6 @@ button:disabled{opacity:.4;cursor:default}
     <div class="thumbs" id="thumbs"></div>
     <span class="sample-note" id="sampleNote">هذه صور تجريبية لتجربة التطبيق. اختر صورك من المعرض لاستبدالها.</span>
   </div>
-  <div class="steps">
-    <div style="font-size:14px;font-weight:600">ثلاث خطوات فقط</div>
-    <div class="step"><b>1</b>حدّد أي شيء: وجه، شعر، ثوب، سماء، شخص كامل</div>
-    <div class="step"><b>2</b>اضغط "لصق" لنقله، أو "استبدال" لتبديله بين الصورتين</div>
-    <div class="step"><b>3</b>عدّل الحجم والألوان بإصبعيك، ثم احفظ</div>
-  </div>
   <button class="btn big primary" id="start" style="margin-top:auto;flex:0 0 auto">ابدأ التعديل</button>
 </section>
 
@@ -157,7 +152,6 @@ button:disabled{opacity:.4;cursor:default}
   <input type="file" id="edFile" accept="image/*" hidden>
   <div class="stage" id="stage">
     <canvas id="cv"></canvas>
-    <div class="hint"><span id="hint"></span></div>
     <div class="zoom">
       <button id="zin" aria-label="تكبير العرض">+</button>
       <button id="zout" aria-label="تصغير العرض">−</button>
@@ -180,7 +174,6 @@ button:disabled{opacity:.4;cursor:default}
         <button class="shape" data-shape="tri"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M13 3 23 22H3Z"/></svg>مثلث</button>
         <button class="shape" data-shape="full"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M3 8V3h5M18 3h5v5M23 18v5h-5M8 23H3v-5"/></svg>كامل الصورة</button>
       </div>
-      <div class="gesture"><svg viewBox="0 0 28 28" fill="none" stroke="#1FC7B6" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="16" r="4"/><circle cx="19" cy="10" r="4"/><path d="M5 22l-2 3M23 4l2-3"/></svg>اسحب النقاط لتعديل الشكل. بإصبعين: باعِد للتكبير، قرّب للتصغير، ولُفّ للتدوير. انقر مرتين على الحافة لإضافة نقطة.</div>
       <div id="targetRow" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="lbl">إلى:</span><span id="targets" style="display:flex;gap:6px;flex-wrap:wrap"></span></div>
       <div class="grid2">
         <button class="btn big primary" id="copy">نسخ</button>
@@ -189,13 +182,11 @@ button:disabled{opacity:.4;cursor:default}
       <div class="grid2">
         <button class="btn" id="swap" style="grid-column:1/-1">استبدال تلقائي بين الصورتين ⇄</button>
       </div>
-      <p class="tip" id="selTip"></p>
     </div>
 
     <div class="pane" id="pane-paste" hidden>
-      <p class="tip" id="noFloat">حدّد جزءاً من التبويب الأول، ثم اضغط "لصق" لنقله أو "استبدال" لتبديله بين الصورتين.</p>
+      <p class="tip" id="noFloat">لا يوجد جزء ملصوق</p>
       <div id="floatCtl" hidden style="display:flex;flex-direction:column;gap:12px">
-        <div class="gesture"><svg viewBox="0 0 28 28" fill="none" stroke="#1FC7B6" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="16" r="4"/><circle cx="19" cy="10" r="4"/><path d="M5 22l-2 3M23 4l2-3"/></svg>اسحب الجزء بإصبع واحد، والحجم والتدوير بإصبعين مباشرة على الصورة</div>
         <label class="slider strong"><span class="h">شفافية الحواف <output id="fedgeV">12</output></span><input type="range" id="fedge" min="0" max="40" value="12"></label>
         <label class="check"><input type="checkbox" id="fmatch" checked>مطابقة الإضاءة والألوان مع الصورة تلقائياً</label>
         <div class="grid3">
@@ -207,7 +198,6 @@ button:disabled{opacity:.4;cursor:default}
     </div>
 
     <div class="pane" id="pane-color" hidden>
-      <span class="lbl" id="colorLbl">التعديل على الجزء الملصوق فقط</span>
       <div id="adjBox" style="display:flex;flex-direction:column;gap:8px">
         <label class="slider"><span class="h">غمق ← → تفتيح <output id="a-lightV">0</output></span><input type="range" id="a-light" min="-100" max="100" value="0"></label>
         <label class="slider"><span class="h">التباين <output id="a-contrastV">0</output></span><input type="range" id="a-contrast" min="-100" max="100" value="0"></label>
@@ -431,7 +421,7 @@ function zoomAt(k,sx,sy){
 let hideSel=false;
 let raf=0; function draw(){if(!raf) raf=requestAnimationFrame(render)}
 function render(){
-  raf=0; ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); const ph=P(); if(!ph||!W) return;
+  raf=0; scheduleSave(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); const ph=P(); if(!ph||!W) return;
   const t=tf(), lw=1/t.s; ctx.setTransform(dpr*t.s,0,0,dpr*t.s,dpr*t.ox,dpr*t.oy); ctx.imageSmoothingQuality='high';
   ctx.drawImage(ph.base,0,0);
   if(ph.float){const f=ph.float; drawFloat(ctx,f); if(hideSel) return;
@@ -526,13 +516,6 @@ cv.addEventListener('wheel',e=>{
 
 /* ---------- editor UI ---------- */
 let toastT=0; function toast(msg){const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800)}
-function hint(){
-  const ph=P(); let h;
-  if(ph.float) h='اسحب الجزء المنقول، وكبّره أو دوّره بإصبعين';
-  else if(ph.shape) h='اسحب النقاط ليغطي الشكل ما تريد نقله';
-  else h='اختر شكل التحديد من الأسفل';
-  $('hint').textContent=h;
-}
 function renderPTabs(){
   const box=$('ptabs'); box.innerHTML='';
   photos.forEach((ph,i)=>{
@@ -568,14 +551,12 @@ function refresh(tabs){
   renderTargets();
   $('swap').disabled=photos.length<2||(!ph.shape&&!photos[targetIdx()].shape);
   $('copy').disabled=!ph.shape; $('paste').disabled=!clip;
-  $('selTip').textContent=!ph.shape?'اختر شكلاً أولاً':(clip?`منسوخ من صورة ${clip.from+1} ✓ انتقل إلى أي صورة من الأعلى واضغط "لصق".`:'حدّد الجزء ثم اضغط "نسخ".');
   $('noFloat').hidden=!!ph.float; $('floatCtl').hidden=!ph.float;
   if(ph.float){$('fedge').value=ph.float.edge; $('fedgeV').textContent=ph.float.edge; $('fmatch').checked=ph.float.useMatch}
   const a=ph.float?ph.float.adj:ADJ0();
   ADJK.forEach(k=>{const el=$('a-'+k); el.value=a[k]; el.disabled=!ph.float; $('a-'+k+'V').textContent=a[k]});
   $('areset').disabled=!ph.float;
-  $('colorLbl').textContent=ph.float?'التعديل على الجزء الملصوق فقط':'الصق جزءاً أولاً، ثم عدّل ألوانه هنا';
-  hint(); draw();
+  draw();
 }
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
   pane=b.dataset.pane; document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
@@ -708,7 +689,8 @@ $('save').onclick=async()=>{
   if(!window.claude&&blob){ // standalone site (GitHub Pages): share sheet on phones, normal download elsewhere
     const file=new File([blob],`iswap-${cur+1}.png`,{type:'image/png'});
     try{ if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]}); return} }catch(err){ if(err&&err.name==='AbortError') return }
-    try{const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); return}catch(_){}
+    const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(!iOS) try{const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); return}catch(_){}
   }
   $('saveImg').src=out.toDataURL('image/png'); $('saveOv').hidden=false;
 };
@@ -716,7 +698,44 @@ $('saveClose').onclick=()=>$('saveOv').hidden=true;
 
 new ResizeObserver(()=>{if(!$('editor').hidden) resize(); if(!$('result').hidden) drawCmp()}).observe(document.body);
 new ResizeObserver(()=>{if(!$('editor').hidden) resize()}).observe(stage);
-loadSamples(); renderHome();
+/* ---------- keep the work across reloads and leaving the page (IndexedDB, this device only) ---------- */
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('iswap',1); r.onupgradeneeded=()=>r.result.createObjectStore('s'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error)})}
+async function idbDo(mode,fn){const d=await idb(); return new Promise((res,rej)=>{const t=d.transaction('s',mode), q=fn(t.objectStore('s')); t.oncomplete=()=>res(q&&q.result); t.onerror=()=>rej(t.error)})}
+const blobCache=new WeakMap();
+async function cblob(c){if(blobCache.has(c)) return blobCache.get(c); const b=await new Promise(r=>c.toBlob(r,'image/png')); blobCache.set(c,b); return b}
+async function toCanvas(b){const bm=await createImageBitmap(b), c=newCanvas(bm.width,bm.height); c.getContext('2d').drawImage(bm,0,0); blobCache.set(c,b); return c}
+let saveT=0, restoring=false;
+function scheduleSave(){if(restoring) return; clearTimeout(saveT); saveT=setTimeout(saveState,1200)}
+async function saveState(){
+  try{
+    if(samples||!photos.length){await idbDo('readwrite',st=>st.delete('state')); return}
+    const ps=[];
+    for(const ph of photos){
+      let f=null; if(ph.float){const {src,cache,cacheKey,...rest}=ph.float; f={...rest, src:await cblob(src)}}
+      ps.push({base:await cblob(ph.base), orig:await cblob(ph.orig), shape:ph.shape, float:f});
+    }
+    const st={v:1, cur, view:{...view}, pane, editing:!$('editor').hidden, photos:ps};
+    await idbDo('readwrite',x=>x.put(st,'state'));
+  }catch(_){}
+}
+async function restoreState(){
+  try{
+    const st=await idbDo('readonly',x=>x.get('state')); if(!st||!st.photos||!st.photos.length) return;
+    restoring=true;
+    const ps=[];
+    for(const p of st.photos){
+      const ph={base:await toCanvas(p.base), orig:await toCanvas(p.orig), shape:p.shape, float:null, undo:[], redo:[]};
+      if(p.float){const src=await toCanvas(p.float.src); ph.float={...p.float, src, cache:null, cacheKey:''}}
+      ps.push(ph);
+    }
+    photos=ps; samples=false; cur=Math.min(st.cur||0,photos.length-1); renderHome();
+    if(st.editing){Object.assign(view,st.view||{}); go('editor'); if(st.pane&&st.pane!=='sel') showPane(st.pane)}
+  }catch(_){}
+  restoring=false;
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(saveT); saveState()}});
+
+loadSamples(); renderHome(); restoreState();
 })();
 </script>
 </body>
