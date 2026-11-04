@@ -176,11 +176,7 @@ button:disabled{opacity:.4;cursor:default}
       </div>
       <div id="targetRow" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="lbl">إلى:</span><span id="targets" style="display:flex;gap:6px;flex-wrap:wrap"></span></div>
       <div class="grid2">
-        <button class="btn big primary" id="copy">نسخ</button>
-        <button class="btn big primary" id="paste">لصق</button>
-      </div>
-      <div class="grid2">
-        <button class="btn" id="swap" style="grid-column:1/-1">استبدال تلقائي بين الصورتين ⇄</button>
+        <button class="btn big primary" id="swap" style="grid-column:1/-1">استبدال ⇄</button>
       </div>
     </div>
 
@@ -374,7 +370,7 @@ function floatCanvas(f){
 function meanRGB(d,minA){let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]>=minA){r+=d[i];g+=d[i+1];b+=d[i+2];n++}}return n?{r:r/n,g:g/n,b:b/n}:null}
 function computeMatch(ph,f){
   const s=meanRGB(f.src.getContext('2d').getImageData(0,0,f.src.width,f.src.height).data,200);
-  const w=f.src.width*f.scale*.6, h=f.src.height*f.scale*.6;
+  const w=f.src.width*SX(f)*.6, h=f.src.height*SY(f)*.6;
   const x0=Math.max(0,Math.round(f.x-w/2)), y0=Math.max(0,Math.round(f.y-h/2));
   const x1=Math.min(ph.base.width,Math.round(f.x+w/2)), y1=Math.min(ph.base.height,Math.round(f.y+h/2));
   if(!s||x1-x0<2||y1-y0<2){f.match=null;return}
@@ -394,17 +390,23 @@ function newFloat(ph, src, pos){
   if(pos){x=pos.x; y=pos.y; scale=pos.scale}
   else if(ph.shape&&ph.shape.type!=='full'){const b=bounds(ph.shape.pts); x=b.x+b.w/2; y=b.y+b.h/2; scale=Math.sqrt((b.w*b.h)/(src.width*src.height))*1.1}
   else scale=Math.min(1, ph.base.width*.6/src.width, ph.base.height*.6/src.height);
-  const f={src,x,y,scale:Math.max(.05,Math.min(6,scale)),rot:0,opacity:1,edge:+$('fedge').value,flipH:false,flipV:false,adj:ADJ0(),match:null,useMatch:$('fmatch').checked,cache:null,cacheKey:''};
+  const f={src,x,y,scale:Math.max(.05,Math.min(6,scale)),ax:1,ay:1,rot:0,opacity:1,edge:+$('fedge').value,flipH:false,flipV:false,adj:ADJ0(),match:null,useMatch:$('fmatch').checked,cache:null,cacheKey:''};
   computeMatch(ph,f); return f;
 }
+/* a part cut with shape `from` placed to fill the photo's own shape, stretched to its width and height */
+function fitFloat(ph, src, from){
+  const a=bounds(from.pts), b=bounds(ph.shape.pts), f=newFloat(ph,src,{x:b.x+b.w/2,y:b.y+b.h/2,scale:1});
+  f.ax=Math.max(.05,b.w/Math.max(1,a.w)); f.ay=Math.max(.05,b.h/Math.max(1,a.h)); computeMatch(ph,f); return f;
+}
+const SX=f=>f.scale*(f.ax||1), SY=f=>f.scale*(f.ay||1);
 function drawFloat(g,f){
-  g.save(); g.translate(f.x,f.y); g.rotate(f.rot*Math.PI/180); g.scale(f.scale*(f.flipH?-1:1), f.scale*(f.flipV?-1:1));
+  g.save(); g.translate(f.x,f.y); g.rotate(f.rot*Math.PI/180); g.scale(SX(f)*(f.flipH?-1:1), SY(f)*(f.flipV?-1:1));
   g.globalAlpha=f.opacity; const c=floatCanvas(f); g.drawImage(c,-c.width/2,-c.height/2); g.restore();
 }
 function commitFloat(ph){if(!ph.float) return; pushUndo(ph); const nb=cloneCanvas(ph.base); drawFloat(nb.getContext('2d'),ph.float); ph.base=nb; ph.float=null}
 function inFloat(f,p){
   const a=-f.rot*Math.PI/180, dx=p.x-f.x, dy=p.y-f.y;
-  const lx=(dx*Math.cos(a)-dy*Math.sin(a))/f.scale, ly=(dx*Math.sin(a)+dy*Math.cos(a))/f.scale;
+  const lx=(dx*Math.cos(a)-dy*Math.sin(a))/SX(f), ly=(dx*Math.sin(a)+dy*Math.cos(a))/SY(f);
   return Math.abs(lx)<=f.src.width/2 && Math.abs(ly)<=f.src.height/2;
 }
 
@@ -426,7 +428,8 @@ function render(){
   ctx.drawImage(ph.base,0,0);
   if(ph.float){const f=ph.float; drawFloat(ctx,f); if(hideSel) return;
     ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot*Math.PI/180);
-    const w=f.src.width*f.scale, h=f.src.height*f.scale;
+    const w=f.src.width*SX(f), h=f.src.height*SY(f);
+    for(const [x,y] of [[w/2,0],[-w/2,0],[0,h/2],[0,-h/2]]){ctx.fillStyle=ACC;ctx.fillRect(x-5*lw,y-5*lw,10*lw,10*lw);ctx.lineWidth=2*lw;ctx.strokeStyle='#fff';ctx.strokeRect(x-5*lw,y-5*lw,10*lw,10*lw)}
     ctx.lineWidth=3*lw; ctx.strokeStyle='rgba(0,0,0,.55)'; ctx.strokeRect(-w/2,-h/2,w,h);
     ctx.setLineDash([8*lw,6*lw]); ctx.lineWidth=2.5*lw; ctx.strokeStyle=ACC; ctx.strokeRect(-w/2,-h/2,w,h); ctx.setLineDash([]);
     for(const [x,y] of [[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]]){ctx.beginPath();ctx.arc(x,y,4*lw,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2*lw;ctx.strokeStyle=ACC;ctx.stroke()}
@@ -437,10 +440,16 @@ function render(){
     ctx.fillStyle='rgba(31,199,182,.14)'; ctx.fill(path);
     ctx.lineWidth=3*lw; ctx.strokeStyle='#fff'; ctx.stroke(path);
     ctx.setLineDash([8*lw,6*lw]); ctx.lineWidth=2.5*lw; ctx.strokeStyle=ACC; ctx.stroke(path); ctx.setLineDash([]);
+    for(const h of shapeHandles(ph.shape,lw)){ctx.fillStyle=ACC;ctx.fillRect(h.x-5*lw,h.y-5*lw,10*lw,10*lw);ctx.lineWidth=2*lw;ctx.strokeStyle='#fff';ctx.strokeRect(h.x-5*lw,h.y-5*lw,10*lw,10*lw)}
     ph.shape.pts.forEach((q,i)=>{const on=drag&&drag.mode==='point'&&drag.i===i;ctx.beginPath();ctx.arc(q.x,q.y,(on?6:4.5)*lw,0,Math.PI*2);ctx.fillStyle=on?ACC:'#fff';ctx.fill();ctx.lineWidth=2*lw;ctx.strokeStyle=on?'#fff':ACC;ctx.stroke()});
   }
 }
 
+/* side handles: stretch width (left/right) or height (top/bottom) separately */
+function shapeHandles(sh,lw){const b=bounds(sh.pts), o=16*lw;
+  return [{k:'r',x:b.x+b.w+o,y:b.y+b.h/2},{k:'l',x:b.x-o,y:b.y+b.h/2},{k:'b',x:b.x+b.w/2,y:b.y+b.h+o},{k:'t',x:b.x+b.w/2,y:b.y-o}]}
+function floatHandles(f){const w=f.src.width*SX(f)/2, h=f.src.height*SY(f)/2, a=f.rot*Math.PI/180, c=Math.cos(a), s=Math.sin(a);
+  return [['x',w,0],['x',-w,0],['y',0,h],['y',0,-h]].map(([k,x,y])=>({k,x:f.x+x*c-y*s,y:f.y+x*s+y*c}))}
 /* ---------- touch & mouse ---------- */
 const ptrs=new Map(); let drag=null, lastTap={t:0,x:0,y:0};
 function local(e){const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
@@ -459,10 +468,15 @@ cv.addEventListener('pointerdown',e=>{
   }
   if(ptrs.size>2) return;
   const p=screenToImg(l.x,l.y), s=tf().s;
-  if(ph.float){ if(inFloat(ph.float,p)) drag={mode:'float',p0:p,x0:ph.float.x,y0:ph.float.y}; else drag={mode:'pan',l0:l,px:view.px,py:view.py}; return }
+  if(ph.float){
+    const fh=floatHandles(ph.float).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<26/s);
+    if(fh){drag={mode:'fstretch',k:fh.k}; return}
+    if(inFloat(ph.float,p)) drag={mode:'float',p0:p,x0:ph.float.x,y0:ph.float.y}; else drag={mode:'pan',l0:l,px:view.px,py:view.py}; return }
   if(ph.shape){
     let best=-1, bd=28/s; ph.shape.pts.forEach((q,i)=>{const d=Math.hypot(q.x-p.x,q.y-p.y); if(d<bd){bd=d;best=i}});
     if(best>=0){const q=ph.shape.pts[best]; drag={mode:'point',i:best,dx:q.x-p.x,dy:q.y-p.y}; draw(); return}
+    const sh=shapeHandles(ph.shape,1/s).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<24/s);
+    if(sh){drag={mode:'sstretch',k:sh.k,b:bounds(ph.shape.pts),pts:ph.shape.pts.map(q=>({...q}))}; return}
     if(inShape(ph.shape,p)){drag={mode:'shape',p0:p,pts:ph.shape.pts.map(q=>({...q}))}; return}
   }
   drag={mode:'pan',l0:l,px:view.px,py:view.py};
@@ -483,6 +497,14 @@ cv.addEventListener('pointermove',e=>{
   }
   const p=screenToImg(l.x,l.y);
   if(drag.mode==='float'){ph.float.x=drag.x0+p.x-drag.p0.x; ph.float.y=drag.y0+p.y-drag.p0.y}
+  else if(drag.mode==='fstretch'){const f=ph.float, a=-f.rot*Math.PI/180, dx=p.x-f.x, dy=p.y-f.y;
+    const lx=dx*Math.cos(a)-dy*Math.sin(a), ly=dx*Math.sin(a)+dy*Math.cos(a);
+    if(drag.k==='x') f.ax=Math.max(.05,Math.abs(lx)*2/(f.src.width*f.scale)); else f.ay=Math.max(.05,Math.abs(ly)*2/(f.src.height*f.scale))}
+  else if(drag.mode==='sstretch'){const b=drag.b, k=drag.k;
+    if(k==='r'||k==='l'){const fix=k==='r'?b.x:b.x+b.w, nw=Math.max(10,Math.abs(p.x-fix)), r=nw/Math.max(1,b.w);
+      ph.shape.pts.forEach((q,i)=>{q.x=fix+(drag.pts[i].x-fix)*r})}
+    else {const fix=k==='b'?b.y:b.y+b.h, nh=Math.max(10,Math.abs(p.y-fix)), r=nh/Math.max(1,b.h);
+      ph.shape.pts.forEach((q,i)=>{q.y=fix+(drag.pts[i].y-fix)*r})}}
   else if(drag.mode==='point'){const q=ph.shape.pts[drag.i]; q.x=p.x+drag.dx; q.y=p.y+drag.dy}
   else if(drag.mode==='shape'){ph.shape.pts.forEach((q,i)=>{q.x=drag.pts[i].x+p.x-drag.p0.x;q.y=drag.pts[i].y+p.y-drag.p0.y})}
   else if(drag.mode==='pan'){view.px=drag.px+l.x-drag.l0.x; view.py=drag.py+l.y-drag.l0.y}
@@ -490,7 +512,7 @@ cv.addEventListener('pointermove',e=>{
 });
 function endPtr(e){
   if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); const ph=P();
-  if(drag&&(drag.mode==='float'||(drag.mode==='pinch'&&drag.kind==='float'))&&ph.float&&ph.float.useMatch){computeMatch(ph,ph.float); draw()}
+  if(drag&&(drag.mode==='float'||drag.mode==='fstretch'||(drag.mode==='pinch'&&drag.kind==='float'))&&ph.float&&ph.float.useMatch){computeMatch(ph,ph.float); draw()}
   if(drag&&(drag.mode==='shape'||drag.mode==='pan')&&ptrs.size===0){
     const l=local(e), now=performance.now();
     if(now-lastTap.t<320&&Math.hypot(l.x-lastTap.x,l.y-lastTap.y)<24){addPointAt(screenToImg(l.x,l.y)); lastTap={t:0,x:0,y:0}}
@@ -550,7 +572,7 @@ function refresh(tabs){
   $('undo').disabled=!ph.undo.length&&!ph.float; $('redo').disabled=!ph.redo.length;
   renderTargets();
   $('swap').disabled=photos.length<2||(!ph.shape&&!photos[targetIdx()].shape);
-  $('copy').disabled=!ph.shape; $('paste').disabled=!clip;
+  { const B=photos[targetIdx()]; $('swap').textContent=(photos.length>1&&ph.shape&&!B.shape)?`استبدال ⇄ (ضع الشكل في صورة ${targetIdx()+1})`:'استبدال ⇄'; }
   $('noFloat').hidden=!!ph.float; $('floatCtl').hidden=!ph.float;
   if(ph.float){$('fedge').value=ph.float.edge; $('fedgeV').textContent=ph.float.edge; $('fmatch').checked=ph.float.useMatch}
   const a=ph.float?ph.float.adj:ADJ0();
@@ -580,29 +602,14 @@ function mappedShape(from, to){
   const kx=to.base.width/from.base.width, ky=to.base.height/from.base.height;
   return {type:from.shape.type, smooth:from.shape.smooth, pts:from.shape.pts.map(q=>({x:q.x*kx,y:q.y*ky}))};
 }
-let clip=null; // {canvas, from, cx, cy, w, h}: what was copied and where it came from
-$('copy').onclick=()=>{
-  const A=P(); if(!A.shape) return; if(A.float) commitFloat(A);
-  const part=grab(A); if(!part) return; const b=bounds(A.shape.pts);
-  clip={canvas:part, from:cur, cx:(b.x+b.w/2)/A.base.width, cy:(b.y+b.h/2)/A.base.height, k:A.base.width};
-  refresh(); toast(photos.length>1?'تم النسخ ✓ انتقل إلى الصورة الأخرى واضغط "لصق"':'تم النسخ ✓ اضغط "لصق"');
-};
-$('paste').onclick=()=>{
-  if(!clip) return; const T=P(); if(T.float) commitFloat(T);
-  let pos;
-  if(clip.from===cur) pos={x:clip.cx*T.base.width+clip.canvas.width*.2, y:clip.cy*T.base.height+clip.canvas.height*.1, scale:1};
-  else if(T.shape&&T.shape.type!=='full') pos=null;
-  else {const s=T.base.width/clip.k; pos={x:clip.cx*T.base.width, y:clip.cy*T.base.height, scale:s}}
-  T.float=newFloat(T,clip.canvas,pos); showPane('paste'); refresh(true);
-  toast('تم اللصق. حرّكه أو كبّره بإصبعين');
-};
 $('swap').onclick=()=>{
   const A=P(), t=targetIdx(), B=photos[t]; if(t===cur||(!A.shape&&!B.shape)) return;
-  if(!A.shape) A.shape=mappedShape(B,A);
+  // step 1: the other photo gets the same shape to place and stretch, then the next press swaps
+  if(!B.shape){if(A.float) commitFloat(A); B.shape=mappedShape(A,B); selectPhoto(t); showPane('sel'); toast(`عدّل الشكل في صورة ${t+1} ثم اضغط استبدال`); return}
+  if(!A.shape){A.shape=mappedShape(B,A); refresh(); toast('عدّل الشكل هنا ثم اضغط استبدال'); return}
   if(A.float) commitFloat(A); if(B.float) commitFloat(B);
-  if(!B.shape) B.shape=mappedShape(A,B);
   const pa=grab(A), pb=grab(B); if(!pa||!pb){toast('تأكد أن التحديد داخل حدود الصورتين'); return}
-  B.float=newFloat(B,pa); A.float=newFloat(A,pb);
+  B.float=fitFloat(B,pa,A.shape); A.float=fitFloat(A,pb,B.shape);
   showPane('paste'); refresh(true);
   toast(`تم الاستبدال بين صورة ${cur+1} وصورة ${t+1}. عدّل الحجم والألوان كما تريد`);
 };
@@ -660,7 +667,7 @@ $('start').onclick=()=>{if(photos.length){cur=0; view.zoom=1; view.px=0; view.py
 $('back').onclick=()=>go('home');
 $('done').onclick=()=>go('result');
 $('rback').onclick=$('rback2').onclick=()=>go('editor');
-$('newswap').onclick=()=>{loadSamples(); target=null; clip=null; go('home')};
+$('newswap').onclick=()=>{loadSamples(); target=null; go('home')};
 
 /* ---------- result: before/after ---------- */
 const ccv=$('ccv'), cctx=ccv.getContext('2d'); let split=.5;
